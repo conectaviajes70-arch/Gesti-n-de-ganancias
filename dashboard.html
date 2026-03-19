@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Resumen Conecta</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+
+<style>
+body{
+background: linear-gradient(135deg,#000,#0a0f1f);
+font-family:'Poppins',sans-serif;
+color:white;
+margin:0;
+padding:20px;
+}
+
+.container{max-width:420px;margin:auto;}
+
+.title{
+text-align:center;
+font-size:26px;
+color:#00aaff;
+text-shadow:0 0 15px #00aaff;
+}
+
+.tabs{
+display:flex;
+justify-content:space-between;
+background:#111;
+border-radius:20px;
+padding:5px;
+margin:20px 0;
+}
+
+.tab{
+flex:1;
+text-align:center;
+padding:10px;
+border-radius:20px;
+cursor:pointer;
+}
+
+.active{
+background:linear-gradient(135deg,#00aaff,#0044ff);
+}
+
+.card{
+background:rgba(0,0,0,0.5);
+padding:15px;
+border-radius:15px;
+margin-top:15px;
+box-shadow:0 0 15px rgba(0,170,255,0.2);
+}
+
+.big{
+font-size:28px;
+text-align:center;
+color:#00ccff;
+text-shadow:0 0 15px #00ccff;
+}
+
+.small{
+font-size:12px;
+color:#ccc;
+}
+
+canvas{
+margin-top:15px;
+}
+</style>
+</head>
+
+<body>
+<div class="container">
+
+<div class="title">Resumen de Ganancias</div>
+
+<div class="tabs">
+<div class="tab active" onclick="cambiarTab('diario')">Diario</div>
+<div class="tab" onclick="cambiarTab('semanal')">Semanal</div>
+<div class="tab" onclick="cambiarTab('mensual')">Mensual</div>
+</div>
+
+<div id="rango" class="small" style="text-align:center"></div>
+
+<div class="card">
+<div id="total" class="big">$0</div>
+<canvas id="grafica"></canvas>
+</div>
+
+<div class="card">
+<b>Resumen</b><br><br>
+KM: <span id="km">0</span><br>
+Horas: <span id="horas">0</span><br>
+Viajes: <span id="viajes">0</span>
+</div>
+
+</div>
+
+<script>
+let dias = JSON.parse(localStorage.getItem('dias')) || [];
+let modo = 'diario';
+let chart;
+
+function cambiarTab(tipo){
+modo = tipo;
+document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+event.target.classList.add('active');
+cargar();
+}
+
+function cargar(){
+if(dias.length==0) return;
+
+let data = [];
+let labels = [];
+let total=0, km=0;
+
+if(modo==='diario'){
+let d = dias[dias.length-1];
+data=[d.neta];
+labels=['Hoy'];
+total=d.neta;
+km=d.km;
+}
+
+if(modo==='semanal'){
+let semana = dias.slice(-7);
+semana.forEach((d,i)=>{
+data.push(d.neta);
+labels.push('D'+(i+1));
+total+=d.neta;
+km+=d.km;
+});
+}
+
+if(modo==='mensual'){
+dias.forEach((d,i)=>{
+data.push(d.neta);
+labels.push(i+1);
+total+=d.neta;
+km+=d.km;
+});
+}
+
+// render datos
+document.getElementById('total').innerText='$'+total;
+document.getElementById('km').innerText=km;
+document.getElementById('horas').innerText='--';
+document.getElementById('viajes').innerText='--';
+
+// gráfica
+if(chart) chart.destroy();
+
+chart = new Chart(document.getElementById('grafica'),{
+type:'bar',
+data:{
+labels:labels,
+datasets:[{
+data:data
+}]
+},
+options:{
+plugins:{legend:{display:false}},
+animation:true,
+scales:{
+y:{beginAtZero:true}
+}
+}
+});
+}
+
+cargar();
+</script>
+
+</body>
+</html>
